@@ -70,7 +70,9 @@ class DenunciaController {
       res.status(201).json({
         success: true,
         message: MENSAJES_EXITO.DENUNCIA_CREADA || 'Denuncia registrada exitosamente',
+        id_denuncia: id_denuncia,
         data: {
+          id_denuncia: id_denuncia,
           denuncia: denunciaCreada
         }
       });
@@ -158,7 +160,8 @@ class DenunciaController {
       }
 
       // Verificar permisos: ciudadano solo puede ver sus propias denuncias
-      if (id_tipo_usuario === 1 && denuncia.id_ciudadano !== id_usuario) {
+      const ciudadanoId = denuncia.id_ciudadano_original || denuncia.id_ciudadano?._id || denuncia.id_ciudadano;
+      if (id_tipo_usuario === 1 && ciudadanoId && ciudadanoId.toString() !== id_usuario.toString()) {
         return res.status(403).json({
           success: false,
           message: 'No tienes permiso para ver esta denuncia'
@@ -208,7 +211,8 @@ class DenunciaController {
 
       // Solo el ciudadano que creó la denuncia puede actualizarla
       // y solo si está en estado "Registrada" o "Pendiente"
-      if (id_tipo_usuario === 1 && denuncia.id_ciudadano !== id_usuario) {
+      const idPropietarioActualizar = denuncia.id_ciudadano_original || (denuncia.id_ciudadano?._id || denuncia.id_ciudadano);
+      if (id_tipo_usuario === 1 && idPropietarioActualizar && idPropietarioActualizar.toString() !== id_usuario.toString()) {
         return res.status(403).json({
           success: false,
           message: 'No tienes permiso para actualizar esta denuncia'
@@ -358,8 +362,8 @@ class DenunciaController {
       }
 
       // Solo el ciudadano que creó la denuncia puede eliminarla
-      // y solo si está en estado "Registrada"
-      if (id_tipo_usuario === 1 && denuncia.id_ciudadano !== id_usuario) {
+      const idPropietarioEliminar = denuncia.id_ciudadano_original || (denuncia.id_ciudadano?._id || denuncia.id_ciudadano);
+      if (id_tipo_usuario === 1 && idPropietarioEliminar && idPropietarioEliminar.toString() !== id_usuario.toString()) {
         return res.status(403).json({
           success: false,
           message: 'No tienes permiso para eliminar esta denuncia'
@@ -415,7 +419,10 @@ class DenunciaController {
       }
 
       // Verificar permisos: solo el ciudadano que creó la denuncia puede subir evidencias
-      if (id_tipo_usuario === 1 && denuncia.id_ciudadano !== id_usuario) {
+      // Usamos id_ciudadano_original ya que id_ciudadano está populado
+      const idPropietario = denuncia.id_ciudadano_original || (denuncia.id_ciudadano?._id || denuncia.id_ciudadano);
+
+      if (id_tipo_usuario === 1 && idPropietario && idPropietario.toString() !== id_usuario.toString()) {
         return res.status(403).json({
           success: false,
           message: 'No tienes permiso para subir evidencias a esta denuncia'
@@ -430,13 +437,21 @@ class DenunciaController {
         });
       }
 
+      console.log('Archivos subidos:', req.files.map(f => ({ path: f.path, mimetype: f.mimetype })));
+
       // Preparar datos de evidencias para guardar en BD
-      const evidencias = req.files.map(file => ({
-        ruta_archivo: `/uploads/${file.path.split('uploads/')[1].replace(/\\/g, '/')}`,
-        tipo_archivo: file.mimetype,
-        tamano_bytes: file.size,
-        nombre_original: file.originalname
-      }));
+      const evidencias = req.files.map(file => {
+        // Obtener la parte de la ruta después de 'uploads' de forma robusta
+        const pathParts = file.path.split(/[\\/]uploads[\\/]/);
+        const relativePath = pathParts.length > 1 ? pathParts[1] : file.filename;
+
+        return {
+          url_archivo: `/uploads/${relativePath.replace(/\\/g, '/')}`,
+          nombre_archivo: file.originalname,
+          tipo_archivo: file.mimetype,
+          tamano_bytes: file.size
+        };
+      });
 
       // Guardar evidencias en la base de datos
       const evidenciasCreadas = await EvidenciaFoto.crearMultiples(id, evidencias);
@@ -500,7 +515,7 @@ class DenunciaController {
     try {
       const { id } = req.params;
 
-      // Verificar que la denuncia existe
+      // Verificar que la denuncia exists
       const denuncia = await Denuncia.obtenerPorId(id);
       if (!denuncia) {
         return res.status(404).json({
@@ -524,6 +539,75 @@ class DenunciaController {
       res.status(500).json({
         success: false,
         message: MENSAJES_ERROR.ERROR_SERVIDOR || 'Error al obtener historial'
+      });
+    }
+  }
+
+  /**
+   * Asignar área responsable a una denuncia
+   * PUT /api/v1/denuncias/:id/asignar
+   */
+  static async asignarArea(req, res) {
+    try {
+      const { id } = req.params;
+      const { area_asignada, comentario } = req.body;
+      const { id_usuario, id_tipo_usuario } = req.usuario;
+
+      // Solo autoridades y administradores pueden asignar áreas
+      if (id_tipo_usuario !== 2 && id_tipo_usuario !== 3) {
+        return res.status(403).json({
+          success: false,
+          message: 'No tienes permisos para asignar áreas'
+        });
+      }
+
+      // Validar que el área sea válida
+      const areasValidas = ['Obras Públicas', 'Limpieza', 'Seguridad', 'Salud', 'Medio Ambiente', 'Transporte', 'Servicios Sociales'];
+      if (!area_asignada || !areasValidas.includes(area_asignada)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Área no válida'
+        });
+      }
+
+      // Verificar que la denuncia existe
+      const denuncia = await Denuncia.obtenerPorId(id);
+      if (!denuncia) {
+        return res.status(404).json({
+          success: false,
+          message: 'Denuncia no encontrada'
+        });
+      }
+
+      // Actualizar la denuncia
+      await Denuncia.actualizar(id, {
+        area_asignada,
+        ultima_actualizacion: new Date()
+      });
+
+      // Cambiar estado a "Asignada" si aún no lo está
+      const estadoAsignada = await EstadoDenuncia.obtenerPorNombre('Asignada');
+      if (estadoAsignada && denuncia.id_estado_actual.toString() !== estadoAsignada._id.toString()) {
+        await Denuncia.cambiarEstado(
+          id,
+          estadoAsignada._id,
+          comentario || `Denuncia asignada al área: ${area_asignada}`,
+          id_usuario
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        message: MENSAJES_EXITO.ACTUALIZACION_EXITOSA || 'Área asignada exitosamente',
+        data: {
+          area_asignada
+        }
+      });
+    } catch (error) {
+      console.error('Error en asignarArea:', error);
+      res.status(500).json({
+        success: false,
+        message: MENSAJES_ERROR.ERROR_SERVIDOR || 'Error al asignar área'
       });
     }
   }
