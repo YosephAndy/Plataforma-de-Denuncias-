@@ -34,6 +34,7 @@ function MapaPicker({ ubicacion, onChange, zoom = 13, className = '' }) {
   const [position, setPosition] = useState(ubicacion || { lat: -12.0464, lng: -77.0428 }); // Lima, Perú por defecto
   const [obteniendo, setObteniendo] = useState(false);
   const [errorUbicacion, setErrorUbicacion] = useState(null);
+  const [ubicacionObtenida, setUbicacionObtenida] = useState(false);
   const mapRef = useRef(null);
 
   // Actualizar posición cuando cambia la prop ubicacion
@@ -43,6 +44,14 @@ function MapaPicker({ ubicacion, onChange, zoom = 13, className = '' }) {
     }
   }, [ubicacion]);
 
+  // Obtener ubicación automáticamente al montar el componente
+  useEffect(() => {
+    // Solo obtener ubicación si no se pasó una ubicación inicial y aún no se ha obtenido
+    if (!ubicacion && !ubicacionObtenida) {
+      obtenerUbicacionActual();
+    }
+  }, []);
+
   // Obtener ubicación actual del usuario
   const obtenerUbicacionActual = () => {
     setObteniendo(true);
@@ -51,6 +60,7 @@ function MapaPicker({ ubicacion, onChange, zoom = 13, className = '' }) {
     if (!navigator.geolocation) {
       setErrorUbicacion('La geolocalización no está soportada en tu navegador');
       setObteniendo(false);
+      setUbicacionObtenida(true);
       return;
     }
 
@@ -63,6 +73,7 @@ function MapaPicker({ ubicacion, onChange, zoom = 13, className = '' }) {
         setPosition(newPos);
         onChange(newPos);
         setObteniendo(false);
+        setUbicacionObtenida(true);
 
         // Centrar el mapa en la nueva posición
         if (mapRef.current) {
@@ -73,17 +84,18 @@ function MapaPicker({ ubicacion, onChange, zoom = 13, className = '' }) {
         let mensaje = 'Error al obtener ubicación';
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            mensaje = 'Permiso de ubicación denegado. Por favor, habilita la ubicación en tu navegador.';
+            mensaje = 'Permiso de ubicación denegado. Puedes hacer clic en "Mi ubicación" o seleccionar manualmente en el mapa.';
             break;
           case error.POSITION_UNAVAILABLE:
-            mensaje = 'Información de ubicación no disponible';
+            mensaje = 'Información de ubicación no disponible. Puedes seleccionar manualmente en el mapa.';
             break;
           case error.TIMEOUT:
-            mensaje = 'Tiempo de espera agotado al obtener ubicación';
+            mensaje = 'Tiempo de espera agotado. Puedes hacer clic en "Mi ubicación" para intentar de nuevo.';
             break;
         }
         setErrorUbicacion(mensaje);
         setObteniendo(false);
+        setUbicacionObtenida(true);
       },
       {
         enableHighAccuracy: true,
