@@ -953,3 +953,92 @@
 /* ===== SEPARADORES ELEGANTES ENTRE SECCIONES ===== */
 /* Eliminados por solicitud del usuario para limpiar el diseño */
 
+
+/* ===== FAQ SECTION - ESPECÍFICO DE LANDING PAGE ===== */
+.faq-section {
+  padding: var(--spacing-xl) 0;
+  background: var(--color-white);
+  border-top: 1px solid var(--color-gray-100);
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+}
+
+.faq-card {
+  background: var(--color-white);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-gray-200);
+  transition: all 0.3s ease;
+}
+
+.faq-card:hover {
+  border-color: var(--color-primary-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.faq-question {
+  font-family: var(--font-headings);
+  font-size: var(--font-size-h5);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.faq-answer {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== TERMS SECTION - ESPECÍFICO DE LANDING PAGE ===== */
+.terms-section {
+  padding: var(--spacing-xl) 0;
+  background: var(--color-gray-100);
+}
+
+.terms-content {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.terms-box {
+  background: var(--color-white);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  max-height: 500px;
+  overflow-y: auto;
+  border: 1px solid var(--color-gray-200);
+}
+
+.terms-box h3 {
+  font-family: var(--font-headings);
+  font-size: var(--font-size-h5);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-sm);
+}
+
+.terms-box h3:first-child {
+  margin-top: 0;
+}
+
+.terms-box p {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-md);
+}
+
+@media (max-width: 768px) {
+  .faq-grid {
+    grid-template-columns: 1fr;
+  }
+}

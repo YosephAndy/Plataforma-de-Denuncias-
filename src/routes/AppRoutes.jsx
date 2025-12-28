@@ -6,6 +6,7 @@ import LandingPage from '../pages/public/LandingPage/LandingPage';
 import LoginPage from '../pages/public/LoginPage/LoginPage';
 import RegisterPage from '../pages/public/RegisterPage/RegisterPage';
 import RegisterAuthorityPage from '../pages/public/RegisterAuthorityPage/RegisterAuthorityPage';
+import TermsPage from '../pages/public/TermsPage/TermsPage';
 
 // Páginas de autenticación
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage/ForgotPasswordPage';
@@ -39,7 +40,9 @@ const AppRoutes = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/register-authority" element={<RegisterAuthorityPage />} />
+        <Route path="/terms" element={<TermsPage />} />
 
         {/* Rutas de autenticación */}
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

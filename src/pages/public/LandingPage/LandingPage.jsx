@@ -72,7 +72,27 @@ const LandingPage = () => {
     { numero: '2,847', label: 'Denuncias Resueltas' },
     { numero: '156', label: 'Denuncias Activas' },
     { numero: '89%', label: 'Tasa de Resolución' },
+    { numero: '89%', label: 'Tasa de Resolución' },
     { numero: '3.2', label: 'Días Promedio' }
+  ];
+
+  const faqs = [
+    {
+      pregunta: "¿Mis denuncias son realmente anónimas?",
+      respuesta: "Sí. Si eliges la opción 'Denuncia Anónima', el sistema no guarda tu información personal asociada al reporte público, solo se usa internamente para estadísticas si es necesario."
+    },
+    {
+      pregunta: "¿Qué tipo de evidencias puedo subir?",
+      respuesta: "Puedes subir fotos en formatos JPG, PNG o WebP. Recomendamos que las imágenes sean claras y muestren el problema desde varios ángulos. Máximo 5 imágenes por denuncia."
+    },
+    {
+      pregunta: "¿Cómo sé si mi denuncia fue resuelta?",
+      respuesta: "Recibirás un código de seguimiento al crear tu denuncia. Con ese código puedes verificar el estado en tiempo real en la página de Seguimiento, o recibir notificaciones si creaste una cuenta."
+    },
+    {
+      pregunta: "¿Las autoridades ven esto inmediatamente?",
+      respuesta: "Sí, la plataforma notifica automáticamente al área responsable tan pronto como la denuncia es validada por el sistema, agilizando el tiempo de respuesta."
+    }
   ];
 
   return (
@@ -192,6 +212,28 @@ const LandingPage = () => {
         </div>
       </section>
 
+
+
+      {/* FAQ Section */}
+      <section className="faq-section" id="faq">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Preguntas Frecuentes</h2>
+            <p className="section-subtitle">
+              Resolvemos tus dudas principales sobre el uso de la plataforma
+            </p>
+          </div>
+          <div className="faq-grid">
+            {faqs.map((faq, index) => (
+              <div key={index} className="faq-card">
+                <h3 className="faq-question">{faq.pregunta}</h3>
+                <p className="faq-answer">{faq.respuesta}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Call to Action Final */}
       <section className="cta-section">
         <div className="container">
@@ -211,6 +253,8 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+
+
 
       {/* Footer Mejorado */}
       <footer className="footer">
@@ -269,7 +313,7 @@ const LandingPage = () => {
                 <li><a href="#how-it-works">Cómo Funciona</a></li>
                 <li><a href="#categories">Categorías</a></li>
                 <li><a href="#faq">Preguntas Frecuentes</a></li>
-                <li><a href="#terms">Términos y Condiciones</a></li>
+                <li><Link to="/terms">Términos y Condiciones</Link></li>
               </ul>
             </div>
 
