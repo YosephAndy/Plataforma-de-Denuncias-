@@ -13,8 +13,9 @@ const iniciarServidor = async () => {
     const conexionExitosa = await conectarDB();
 
     if (!conexionExitosa) {
-      console.error('No se pudo conectar a la base de datos. Verifica tu configuración.');
-      process.exit(1);
+      console.error('No se pudo conectar a la base de datos. El servidor iniciará sin conexión a BD.');
+      // No salimos del proceso para permitir diagnósticos o reconexión futura
+      // process.exit(1); 
     }
 
     // Iniciar servidor Express

@@ -99,12 +99,6 @@ const usuarioSchema = new mongoose.Schema({
   collection: 'usuarios'
 });
 
-// Índices únicos (declarados solo una vez)
-usuarioSchema.index({ email: 1 }, { unique: true });
-usuarioSchema.index({ documento_identidad: 1 }, { unique: true });
-usuarioSchema.index({ numero_empleado: 1 }, { unique: true, sparse: true });
-usuarioSchema.index({ google_id: 1 }, { unique: true, sparse: true });
-
 // Virtual para nombre completo
 usuarioSchema.virtual('nombreCompleto').get(function () {
   return `${this.nombres} ${this.apellidos}`;
@@ -172,6 +166,14 @@ usuarioSchema.statics.documentoExisteParaOtroUsuario = async function (documento
     _id: { $ne: id_usuario }
   });
   return count > 0;
+};
+
+usuarioSchema.statics.actualizar = async function (id_usuario, datosActualizacion) {
+  return await this.findByIdAndUpdate(id_usuario, datosActualizacion, { new: true });
+};
+
+usuarioSchema.statics.cambiarPassword = async function (id_usuario, nuevoPasswordHash) {
+  return await this.findByIdAndUpdate(id_usuario, { password_hash: nuevoPasswordHash }, { new: true });
 };
 
 // Método para obtener historial de actividad del usuario

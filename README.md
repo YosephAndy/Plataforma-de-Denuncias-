@@ -51,6 +51,10 @@ Plataforma web que permite a los ciudadanos reportar problemas urbanos (baches, 
 - **Express-validator** - Validaciones
 - **Multer** - Upload de archivos
 
+### Integración y Gestión
+- **Jira MCP** - Integración con Jira para gestión de tareas e issues ([Ver documentación](JIRA_INTEGRATION.md))
+
+
 ---
 
 ## 📁 Estructura del Proyecto

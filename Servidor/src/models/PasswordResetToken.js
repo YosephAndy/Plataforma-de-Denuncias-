@@ -34,7 +34,6 @@ const passwordResetTokenSchema = new mongoose.Schema({
 });
 
 // Índices
-passwordResetTokenSchema.index({ token: 1 });
 passwordResetTokenSchema.index({ id_usuario: 1 });
 passwordResetTokenSchema.index({ fecha_expiracion: 1 });
 

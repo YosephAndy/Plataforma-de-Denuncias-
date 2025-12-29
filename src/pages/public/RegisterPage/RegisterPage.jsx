@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import Input from '../../../components/common/Input/Input';
 import Button from '../../../components/common/Button/Button';
@@ -8,7 +8,7 @@ import styles from './RegisterPage.module.css';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { registrarCiudadano, error } = useAuth();
+  const { registrarCiudadano, error, estaAutenticado, esAutoridad, esCiudadano, cargando: authCargando } = useAuth();
   const [formData, setFormData] = useState({
     nombres: '',
     apellidos: '',
@@ -21,6 +21,29 @@ const RegisterPage = () => {
   });
   const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(false);
+
+  // Mostrar loading global si se está verificando sesión
+  if (authCargando) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '1rem' }}>
+        <div className="spinner" style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Verificando sesión...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // Redirigir si ya está autenticado
+  if (estaAutenticado) {
+    if (esAutoridad) {
+      return <Navigate to="/dashboard-autoridad" replace />;
+    }
+    if (esCiudadano) {
+      return <Navigate to="/home" replace />;
+    }
+    return <Navigate to="/home" replace />;
+  }
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -198,10 +221,10 @@ const RegisterPage = () => {
             />
           </div>
 
-          <Button 
-            type="submit" 
-            variant="primary" 
-            fullWidth 
+          <Button
+            type="submit"
+            variant="primary"
+            fullWidth
             disabled={cargando}
           >
             {cargando ? 'Registrando...' : 'Registrarse'}
@@ -212,7 +235,7 @@ const RegisterPage = () => {
           ¿Ya tienes cuenta?{' '}
           <Link to="/login">Inicia sesión aquí</Link>
         </div>
-        
+
         <div className={styles['authority-link']}>
           ¿Eres una autoridad?{' '}
           <Link to="/register-authority">Regístrate como autoridad</Link>

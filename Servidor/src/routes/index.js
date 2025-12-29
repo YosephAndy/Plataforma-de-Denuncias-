@@ -6,6 +6,7 @@ import categoriaRoutes from './categoriaRoutes.js';
 import estadoRoutes from './estadoRoutes.js';
 import comentarioRoutes from './comentarioRoutes.js';
 import estadisticasRoutes from './estadisticasRoutes.js';
+import notificacionRoutes from './notificacionRoutes.js';
 
 const router = express.Router();
 
@@ -29,6 +30,10 @@ router.use('/', comentarioRoutes);
 
 // Rutas de estadísticas
 router.use('/estadisticas', estadisticasRoutes);
+
+// Rutas de notificaciones
+router.use('/notificaciones', notificacionRoutes);
+
 
 // Ruta de bienvenida
 router.get('/', (req, res) => {

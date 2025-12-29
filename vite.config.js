@@ -10,3 +10,5 @@ export default defineConfig({
     host: true  // Permite acceso desde la red
   }
 })
+// Force reload dependency
+

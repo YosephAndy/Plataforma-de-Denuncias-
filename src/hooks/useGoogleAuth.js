@@ -95,24 +95,44 @@ export const useGoogleAuth = () => {
           const reason = notification.getNotDisplayedReason();
           console.warn('Google One Tap no se mostró:', reason);
 
-          // Si falla por cualquier razón relevante, usar flujo OAuth2 manual
-          if (reason === 'unregistered_origin' ||
-            reason === 'invalid_client' ||
-            reason === 'opt_out_or_no_session' ||
-            reason === 'suppressed_by_user') {
-            console.log('🔄 Usando flujo OAuth2 alternativo...');
+          // Lista ampliada de razones para usar flujo OAuth2 alternativo
+          const razonesParaFlujoAlternativo = [
+            'unregistered_origin',
+            'invalid_client',
+            'opt_out_or_no_session',
+            'suppressed_by_user',
+            'unknown_reason',
+            'browser_not_supported',
+            'tap_outside',
+            'credential_returned',
+            'unknown'
+          ];
+
+          // Si falla por cualquier razón, usar flujo OAuth2 manual
+          if (razonesParaFlujoAlternativo.includes(reason) || reason) {
+            console.log('🔄 Usando flujo OAuth2 alternativo (popup)...');
             initiateOAuth2Flow(handleCredentialResponse, onError);
-          } else {
-            console.log('Intentando flujo OAuth estándar...');
           }
         }
         if (notification.isSkippedMoment()) {
-          console.log('Usuario cerró el popup de Google');
+          const skipReason = notification.getSkippedReason?.() || 'desconocida';
+          console.log('Usuario cerró/saltó el popup de Google. Razón:', skipReason);
+          // Ofrecer flujo alternativo si el usuario cerró
+          console.log('🔄 Intentando flujo OAuth2 alternativo...');
+          initiateOAuth2Flow(handleCredentialResponse, onError);
+        }
+        if (notification.isDismissedMoment?.()) {
+          console.log('Google One Tap fue descartado, intentando flujo alternativo...');
+          initiateOAuth2Flow(handleCredentialResponse, onError);
         }
       });
     } catch (error) {
       console.error('Error al inicializar Google login:', error);
-      onError?.(error.message);
+      console.log('🔄 Intentando flujo OAuth2 alternativo debido a error...');
+      initiateOAuth2Flow(
+        (response) => onSuccess?.(response.credential),
+        onError
+      );
     }
   };
 

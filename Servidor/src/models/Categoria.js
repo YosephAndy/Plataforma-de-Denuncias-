@@ -22,9 +22,6 @@ const categoriaSchema = new mongoose.Schema({
   collection: 'categorias'
 });
 
-// Índices
-categoriaSchema.index({ nombre: 1 });
-
 // Virtual para id_categoria (para compatibilidad con controladores)
 categoriaSchema.virtual('id_categoria').get(function() {
   return this._id;
