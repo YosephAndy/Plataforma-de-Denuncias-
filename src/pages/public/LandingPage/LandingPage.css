@@ -84,7 +84,7 @@
 .hero-section {
   background-image: 
     linear-gradient(135deg, rgba(7, 19, 90, 0.404) 0%, rgba(7, 19, 90, 0.441) 100%),
-    url('/Imagenes/HeroSeccion.png');
+    url('/Imagenes/HeroSeccion.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -447,7 +447,7 @@
 
 /* CTA SECTION - ESPECÍFICA DE LANDING PAGE */
 .cta-section {
-  background-image: url('/Imagenes/BAsefooter.png');
+  background-image: url('/Imagenes/BAsefooter.webp');
   background-size: cover;
   background-position: top;
   background-repeat: no-repeat;

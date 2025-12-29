@@ -120,6 +120,25 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   };
 
+  // Helpers para detectar tipo de usuario de forma robusta
+  const esUsuarioAutoridad = (user) => {
+    if (!user) return false;
+    const tipo = user.tipo_usuario?.toLowerCase() || '';
+    return tipo.includes('autoridad') || user.id_tipo_usuario === 2;
+  };
+
+  const esUsuarioCiudadano = (user) => {
+    if (!user) return false;
+    const tipo = user.tipo_usuario?.toLowerCase() || '';
+    return tipo === 'ciudadano' || user.id_tipo_usuario === 1;
+  };
+
+  const esUsuarioAdmin = (user) => {
+    if (!user) return false;
+    const tipo = user.tipo_usuario?.toLowerCase() || '';
+    return tipo.includes('admin') || user.id_tipo_usuario === 3;
+  };
+
   const value = {
     usuario,
     cargando,
@@ -133,9 +152,9 @@ export const AuthProvider = ({ children }) => {
     restablecerPassword,
     limpiarError,
     estaAutenticado: !!usuario,
-    esAdmin: usuario?.tipo_usuario === 'Administrador',
-    esAutoridad: usuario?.tipo_usuario === 'Autoridad' || usuario?.tipo_usuario === 'Autoridad_Municipal',
-    esCiudadano: usuario?.tipo_usuario === 'Ciudadano'
+    esAdmin: esUsuarioAdmin(usuario),
+    esAutoridad: esUsuarioAutoridad(usuario),
+    esCiudadano: esUsuarioCiudadano(usuario)
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

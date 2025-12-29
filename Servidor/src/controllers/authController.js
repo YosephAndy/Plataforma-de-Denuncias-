@@ -145,6 +145,23 @@ class AuthController {
         });
       }
 
+      // Verificar si el usuario se registró con Google y no tiene password
+      if (!usuario.password_hash && usuario.google_id) {
+        return res.status(400).json({
+          success: false,
+          message: 'Esta cuenta fue creada con Google. Por favor, inicia sesión con Google o establece una contraseña desde tu perfil.',
+          requiresGoogle: true
+        });
+      }
+
+      // Verificar si tiene password_hash
+      if (!usuario.password_hash) {
+        return res.status(400).json({
+          success: false,
+          message: 'La cuenta no tiene contraseña configurada. Usa la opción de recuperar contraseña.'
+        });
+      }
+
       // Verificar contraseña
       const passwordValido = await bcrypt.compare(password, usuario.password_hash);
 
@@ -434,10 +451,19 @@ class AuthController {
         });
       }
 
+      // Verificar que GOOGLE_CLIENT_ID esté configurado
+      if (!process.env.GOOGLE_CLIENT_ID) {
+        console.error('❌ GOOGLE_CLIENT_ID no está configurado en el archivo .env');
+        return res.status(500).json({
+          success: false,
+          message: 'Google OAuth no está configurado en el servidor. Contacte al administrador.'
+        });
+      }
+
       // Verificar el token con Google
       const { OAuth2Client } = await import('google-auth-library');
       const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-      
+
       let payload;
       try {
         const ticket = await client.verifyIdToken({
@@ -446,10 +472,11 @@ class AuthController {
         });
         payload = ticket.getPayload();
       } catch (error) {
-        console.error('Error al verificar token de Google:', error);
+        console.error('Error al verificar token de Google:', error.message);
+        console.error('Detalles:', error);
         return res.status(401).json({
           success: false,
-          message: 'Token de Google inválido'
+          message: 'Token de Google inválido o expirado. Por favor, intenta nuevamente.'
         });
       }
 
@@ -457,6 +484,7 @@ class AuthController {
 
       // Buscar si el usuario ya existe
       let usuario = await Usuario.buscarPorEmail(email);
+      let idUsuario;
 
       if (!usuario) {
         // Crear nuevo usuario desde Google
@@ -475,15 +503,18 @@ class AuthController {
           // No necesita password_hash porque tiene google_id
         };
 
-        usuario = await Usuario.crear(nuevoUsuario);
-        
-        if (!usuario) {
+        // Usuario.crear devuelve el ID del nuevo usuario
+        idUsuario = await Usuario.crear(nuevoUsuario);
+
+        if (!idUsuario) {
           return res.status(500).json({
             success: false,
             message: 'Error al crear usuario con Google'
           });
         }
       } else {
+        idUsuario = usuario.id_usuario;
+
         // Actualizar google_id y foto si no existen
         if (!usuario.google_id) {
           await Usuario.actualizar(usuario.id_usuario, {
@@ -494,10 +525,10 @@ class AuthController {
         }
       }
 
-      // Obtener datos completos del usuario
-      const usuarioCompleto = await Usuario.buscarPorId(usuario.id_usuario);
+      // Obtener datos completos del usuario usando el ID correcto
+      const usuarioCompleto = await Usuario.buscarPorId(idUsuario);
 
-      // Generar token JWT
+      // Generar token
       const token = AuthController._generarToken(usuarioCompleto);
 
       res.json({
@@ -505,7 +536,7 @@ class AuthController {
         message: 'Login con Google exitoso',
         data: {
           token,
-          usuario: AuthController._formatearUsuario(usuarioCompleto, usuarioCompleto.nombre_tipo !== 'Ciudadano')
+          usuario: AuthController._formatearUsuario(usuarioCompleto)
         }
       });
     } catch (error) {
@@ -513,6 +544,51 @@ class AuthController {
       res.status(500).json({
         success: false,
         message: 'Error al procesar login con Google',
+        error: error.message
+      });
+    }
+  }
+
+  // Establecer contraseña para usuarios de Google
+  static async establecerPassword(req, res) {
+    try {
+      const { nueva_password } = req.body;
+      const id_usuario = req.usuario.id_usuario;
+
+      // Buscar usuario
+      const usuario = await Usuario.buscarPorId(id_usuario);
+
+      if (!usuario) {
+        return res.status(404).json({
+          success: false,
+          message: MENSAJES_ERROR.USUARIO_NO_ENCONTRADO
+        });
+      }
+
+      // Verificar que el usuario tenga google_id (se registró con Google)
+      if (!usuario.google_id) {
+        return res.status(400).json({
+          success: false,
+          message: 'Esta opción solo está disponible para cuentas creadas con Google'
+        });
+      }
+
+      // Hashear nueva contraseña
+      const password_hash = await bcrypt.hash(nueva_password, 10);
+
+      // Actualizar contraseña
+      usuario.password_hash = password_hash;
+      await usuario.save();
+
+      res.json({
+        success: true,
+        message: 'Contraseña establecida exitosamente. Ahora puedes iniciar sesión con email y contraseña.'
+      });
+    } catch (error) {
+      console.error('Error al establecer contraseña:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al establecer contraseña',
         error: error.message
       });
     }

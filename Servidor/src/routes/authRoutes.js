@@ -4,10 +4,10 @@ import AuthController from '../controllers/authController.js';
 import { manejarErroresValidacion } from '../middlewares/validationMiddleware.js';
 import { verificarToken } from '../middlewares/authMiddleware.js';
 import { validarRegistroAutoridad } from '../middlewares/validators/autoridadValidator.js';
-import { 
-  validarSolicitudRecuperacion, 
+import {
+  validarSolicitudRecuperacion,
   validarRestablecerPassword,
-  validarToken 
+  validarToken
 } from '../middlewares/validators/passwordResetValidator.js';
 
 const router = express.Router();
@@ -94,6 +94,17 @@ router.get(
   '/verify-reset-token/:token',
   validarToken,
   AuthController.verificarTokenRecuperacion
+);
+
+// Ruta para establecer contraseña (usuarios de Google)
+router.post(
+  '/set-password',
+  verificarToken,
+  body('nueva_password')
+    .notEmpty().withMessage('La nueva contraseña es obligatoria')
+    .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
+  manejarErroresValidacion,
+  AuthController.establecerPassword
 );
 
 export default router;

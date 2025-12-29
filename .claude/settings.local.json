@@ -9,7 +9,8 @@
       "Bash(node verify-db.js:*)",
       "Bash(node fix-indexes.js:*)",
       "Bash(node:*)",
-      "Bash(move fix-css-variables.js fix-css-variables.cjs)"
+      "Bash(move fix-css-variables.js fix-css-variables.cjs)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

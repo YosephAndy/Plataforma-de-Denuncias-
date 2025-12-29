@@ -10,6 +10,8 @@
     "dev:frontend": "vite",
     "init-db": "cd Servidor && npm run init-db",
     "verify-db": "node verify-db.js",
+    "verify-jira": "node verify-jira.js",
+    "fetch-jira": "node fetch-jira-data.js",
     "build": "vite build",
     "build:prod": "vite build --mode production",
     "lint": "eslint .",

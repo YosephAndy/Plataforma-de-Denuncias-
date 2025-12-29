@@ -325,6 +325,23 @@ class DenunciaController {
         comentario || 'Estado actualizado'
       );
 
+      // Crear notificación para el ciudadano
+      // Obtener datos del ciudadano dueño de la denuncia
+      const idCiudadano = denuncia.id_ciudadano_original || (denuncia.id_ciudadano?._id || denuncia.id_ciudadano);
+
+      if (idCiudadano) {
+        // Importar Notificacion dinámicamente o usar si se importó arriba
+        const Notificacion = (await import('../models/Notificacion.js')).default;
+
+        await Notificacion.crear({
+          id_usuario: idCiudadano,
+          id_denuncia: id,
+          titulo: `Actualización de Denuncia: ${denuncia.titulo}`,
+          mensaje: `El estado de tu denuncia ha cambiado a: ${nuevoEstado.nombre}. ${comentario ? `Comentario: ${comentario}` : ''}`,
+          tipo: 'INFO'
+        });
+      }
+
       const denunciaActualizada = await Denuncia.obtenerPorId(id);
 
       res.status(200).json({
@@ -596,6 +613,19 @@ class DenunciaController {
         );
       }
 
+      // Crear notificación para el ciudadano
+      const idCiudadano = denuncia.id_ciudadano_original || (denuncia.id_ciudadano?._id || denuncia.id_ciudadano);
+      if (idCiudadano) {
+        const Notificacion = (await import('../models/Notificacion.js')).default;
+        await Notificacion.crear({
+          id_usuario: idCiudadano,
+          id_denuncia: id,
+          titulo: `Actualización de Denuncia: ${denuncia.titulo}`,
+          mensaje: `Tu denuncia ha sido asignada al área de ${area_asignada}. ${comentario ? `Comentario: ${comentario}` : ''}`,
+          tipo: 'INFO'
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: MENSAJES_EXITO.ACTUALIZACION_EXITOSA || 'Área asignada exitosamente',
@@ -614,3 +644,4 @@ class DenunciaController {
 }
 
 export default DenunciaController;
+
