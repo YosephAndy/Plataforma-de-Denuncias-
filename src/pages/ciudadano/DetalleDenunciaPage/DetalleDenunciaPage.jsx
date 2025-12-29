@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../../hooks/useIsMobile';
+import { useAuth } from '../../../contexts/AuthContext';
 import Header from '../../../components/common/Header/Header';
 import BottomNavigation from '../../../components/common/BottomNavigation/BottomNavigation';
 import Comentarios from '../../../components/denuncias/Comentarios';
@@ -17,6 +18,7 @@ const DetalleDenunciaPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
 
   const [denuncia, setDenuncia] = useState(null);
   const [historialEstados, setHistorialEstados] = useState([]);
@@ -25,8 +27,20 @@ const DetalleDenunciaPage = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  // Estados para panel de autoridad
+  const [estados, setEstados] = useState([]);
+  const [modalCambiarEstado, setModalCambiarEstado] = useState(false);
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState('');
+  const [comentarioEstado, setComentarioEstado] = useState('');
+  const [procesandoCambio, setProcesandoCambio] = useState(false);
+
+  const esAutoridad = user?.id_tipo_usuario === 2;
+
   useEffect(() => {
     cargarDenuncia();
+    if (esAutoridad) {
+      cargarEstados();
+    }
   }, [id]);
 
   const cargarDenuncia = async () => {
@@ -57,6 +71,51 @@ const DetalleDenunciaPage = () => {
       toast.error('Error al cargar la denuncia');
     } finally {
       setCargando(false);
+    }
+  };
+
+  const cargarEstados = async () => {
+    try {
+      const response = await denunciaService.obtenerEstados();
+      if (response.success) {
+        setEstados(response.data || []);
+      }
+    } catch (err) {
+      console.error('Error al cargar estados:', err);
+    }
+  };
+
+  const handleCambiarEstado = async (e) => {
+    e.preventDefault();
+
+    if (!estadoSeleccionado) {
+      toast.error('Por favor selecciona un estado');
+      return;
+    }
+
+    try {
+      setProcesandoCambio(true);
+      const response = await denunciaService.cambiarEstado(
+        id,
+        parseInt(estadoSeleccionado),
+        comentarioEstado
+      );
+
+      if (response.success) {
+        toast.success('Estado actualizado exitosamente');
+        setModalCambiarEstado(false);
+        setEstadoSeleccionado('');
+        setComentarioEstado('');
+        // Recargar la denuncia para ver el nuevo estado
+        cargarDenuncia();
+      } else {
+        toast.error(response.message || 'Error al cambiar estado');
+      }
+    } catch (err) {
+      console.error('Error al cambiar estado:', err);
+      toast.error('Error al cambiar el estado de la denuncia');
+    } finally {
+      setProcesandoCambio(false);
     }
   };
 
@@ -162,6 +221,11 @@ const DetalleDenunciaPage = () => {
                 {denuncia.es_anonima && (
                   <span className={styles.badgeAnonima}>🔒 Anónima</span>
                 )}
+                {denuncia.area_asignada && (
+                  <span className={styles.badgeArea}>
+                    📋 {denuncia.area_asignada}
+                  </span>
+                )}
               </div>
             </div>
             <div className={styles.idBadge}>
@@ -185,6 +249,80 @@ const DetalleDenunciaPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Barra de progreso visual */}
+        <div className={styles.progressSection}>
+          <div className={styles.progressHeader}>
+            <h3 className={styles.progressTitle}>Progreso de la Denuncia</h3>
+          </div>
+          <div className={styles.progressBar}>
+            <div className={`${styles.progressStep} ${styles.completed}`}>
+              <div className={styles.stepCircle}>
+                <span className={styles.stepIcon}>✓</span>
+              </div>
+              <span className={styles.stepLabel}>Registrada</span>
+            </div>
+            <div className={styles.progressLine}></div>
+            <div className={`${styles.progressStep} ${['En Revisión', 'Asignada', 'En Proceso', 'Resuelta', 'Cerrada'].includes(denuncia.estado_nombre) ? styles.completed : styles.current}`}>
+              <div className={styles.stepCircle}>
+                <span className={styles.stepIcon}>{['En Revisión', 'Asignada', 'En Proceso', 'Resuelta', 'Cerrada'].includes(denuncia.estado_nombre) ? '✓' : '2'}</span>
+              </div>
+              <span className={styles.stepLabel}>En Revisión</span>
+            </div>
+            <div className={styles.progressLine}></div>
+            <div className={`${styles.progressStep} ${['En Proceso', 'Resuelta', 'Cerrada'].includes(denuncia.estado_nombre) ? styles.completed : ['En Revisión', 'Asignada'].includes(denuncia.estado_nombre) ? styles.current : ''}`}>
+              <div className={styles.stepCircle}>
+                <span className={styles.stepIcon}>{['En Proceso', 'Resuelta', 'Cerrada'].includes(denuncia.estado_nombre) ? '✓' : '3'}</span>
+              </div>
+              <span className={styles.stepLabel}>En Proceso</span>
+            </div>
+            <div className={styles.progressLine}></div>
+            <div className={`${styles.progressStep} ${['Resuelta', 'Cerrada'].includes(denuncia.estado_nombre) ? styles.completed : denuncia.estado_nombre === 'En Proceso' ? styles.current : ''}`}>
+              <div className={styles.stepCircle}>
+                <span className={styles.stepIcon}>{['Resuelta', 'Cerrada'].includes(denuncia.estado_nombre) ? '✓' : '4'}</span>
+              </div>
+              <span className={styles.stepLabel}>Resuelta</span>
+            </div>
+          </div>
+
+          {/* Próximos pasos */}
+          {denuncia.estado_nombre !== 'Resuelta' && denuncia.estado_nombre !== 'Cerrada' && (
+            <div className={styles.nextSteps}>
+              <h4 className={styles.nextStepsTitle}>📌 Qué sigue:</h4>
+              <p className={styles.nextStepsText}>
+                {denuncia.estado_nombre === 'Registrada' || denuncia.estado_nombre === 'Pendiente' ?
+                  'Tu denuncia será revisada por las autoridades competentes. Recibirás una notificación cuando sea asignada a un área responsable.' :
+                denuncia.estado_nombre === 'En Revisión' || denuncia.estado_nombre === 'Asignada' ?
+                  'Las autoridades están evaluando tu denuncia y definiendo las acciones a tomar. Te notificaremos cuando inicien el trabajo de resolución.' :
+                denuncia.estado_nombre === 'En Proceso' ?
+                  'El área responsable está trabajando en resolver tu denuncia. Te mantendremos informado del avance.' :
+                  'Estamos trabajando en tu denuncia.'
+                }
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Panel de Control para Autoridades */}
+        {esAutoridad && (
+          <div className={styles.panelAutoridad}>
+            <div className={styles.panelHeader}>
+              <h3 className={styles.panelTitle}>⚙️ Panel de Control - Autoridad</h3>
+              <p className={styles.panelSubtitle}>Gestiona el estado de esta denuncia</p>
+            </div>
+            <div className={styles.panelActions}>
+              <button
+                className={styles.btnCambiarEstado}
+                onClick={() => setModalCambiarEstado(true)}
+              >
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className={styles.btnIcon}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Cambiar Estado
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Contenido principal en grid */}
         <div className={styles.mainGrid}>
@@ -306,6 +444,14 @@ const DetalleDenunciaPage = () => {
                   <span className={styles.infoLabel}>Tipo de denuncia</span>
                   <span className={styles.infoValue}>{denuncia.es_anonima ? 'Anónima' : 'Identificada'}</span>
                 </div>
+                {denuncia.area_asignada && (
+                  <div className={styles.infoItem}>
+                    <span className={styles.infoLabel}>Área responsable</span>
+                    <span className={`${styles.infoValue} ${styles.areaAsignada}`}>
+                      📋 {denuncia.area_asignada}
+                    </span>
+                  </div>
+                )}
               </div>
             </section>
           </div>
@@ -320,7 +466,100 @@ const DetalleDenunciaPage = () => {
           onClose={() => setLightboxOpen(false)}
         />
       )}
-      {isMobile && <BottomNavigation userType="ciudadano" />}
+
+      {/* Modal Cambiar Estado (Autoridad) */}
+      {modalCambiarEstado && esAutoridad && (
+        <div className={styles.modalOverlay} onClick={() => setModalCambiarEstado(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Cambiar Estado de Denuncia</h3>
+              <button
+                className={styles.modalClose}
+                onClick={() => setModalCambiarEstado(false)}
+                type="button"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCambiarEstado} className={styles.modalForm}>
+              <div className={styles.modalInfo}>
+                <div className={styles.modalInfoItem}>
+                  <span className={styles.modalInfoLabel}>Denuncia:</span>
+                  <span className={styles.modalInfoValue}>{denuncia.titulo}</span>
+                </div>
+                <div className={styles.modalInfoItem}>
+                  <span className={styles.modalInfoLabel}>Estado actual:</span>
+                  <span className={`${styles.badge} ${obtenerClaseEstado(denuncia.estado_nombre)}`}>
+                    {denuncia.estado_nombre}
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="nuevoEstado" className={styles.formLabel}>
+                  Nuevo Estado *
+                </label>
+                <select
+                  id="nuevoEstado"
+                  value={estadoSeleccionado}
+                  onChange={(e) => setEstadoSeleccionado(e.target.value)}
+                  className={styles.formSelect}
+                  required
+                >
+                  <option value="">Selecciona un estado</option>
+                  {estados.map((estado) => (
+                    <option
+                      key={estado.id_estado}
+                      value={estado.id_estado}
+                      disabled={estado.id_estado === denuncia.id_estado_actual}
+                    >
+                      {estado.nombre} {estado.id_estado === denuncia.id_estado_actual ? '(actual)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="comentario" className={styles.formLabel}>
+                  Comentario (opcional)
+                </label>
+                <textarea
+                  id="comentario"
+                  value={comentarioEstado}
+                  onChange={(e) => setComentarioEstado(e.target.value)}
+                  className={styles.formTextarea}
+                  placeholder="Agrega un comentario sobre este cambio..."
+                  rows={4}
+                />
+                <span className={styles.formHelp}>
+                  Este comentario será visible para el ciudadano en la notificación
+                </span>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  onClick={() => setModalCambiarEstado(false)}
+                  className={styles.btnCancelar}
+                  disabled={procesandoCambio}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className={styles.btnGuardar}
+                  disabled={procesandoCambio || !estadoSeleccionado}
+                >
+                  {procesandoCambio ? 'Guardando...' : 'Guardar Cambio'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isMobile && <BottomNavigation userType={user?.id_tipo_usuario === 2 ? "autoridad" : "ciudadano"} />}
     </div>
   );
 };
