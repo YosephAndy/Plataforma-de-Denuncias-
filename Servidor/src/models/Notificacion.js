@@ -40,8 +40,8 @@ const notificacionSchema = new mongoose.Schema({
 });
 
 // Índices
-notificacionSchema.index({ id_usuario: 1, leida: 1 });
-notificacionSchema.index({ fecha_creacion: -1 });
+// notificacionSchema.index({ id_usuario: 1, leida: 1 });
+// notificacionSchema.index({ fecha_creacion: -1 });
 
 // Métodos estáticos
 notificacionSchema.statics.crear = async function (datos) {
