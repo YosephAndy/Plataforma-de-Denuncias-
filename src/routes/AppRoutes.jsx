@@ -7,6 +7,10 @@ import LoginPage from '../pages/public/LoginPage/LoginPage';
 import RegisterPage from '../pages/public/RegisterPage/RegisterPage';
 import RegisterAuthorityPage from '../pages/public/RegisterAuthorityPage/RegisterAuthorityPage';
 import TermsPage from '../pages/public/TermsPage/TermsPage';
+import PrivacyPolicyPage from '../pages/public/LegalPages/PrivacyPolicyPage';
+import CookiesPage from '../pages/public/LegalPages/CookiesPage';
+import LegalNoticePage from '../pages/public/LegalPages/LegalNoticePage';
+import SupportPage from '../pages/public/SupportPage/SupportPage';
 
 // Páginas de autenticación
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage/ForgotPasswordPage';
@@ -43,6 +47,10 @@ const AppRoutes = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/register-authority" element={<RegisterAuthorityPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/cookies" element={<CookiesPage />} />
+        <Route path="/legal" element={<LegalNoticePage />} />
+        <Route path="/support" element={<SupportPage />} />
 
         {/* Rutas de autenticación */}
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
