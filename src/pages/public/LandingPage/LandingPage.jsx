@@ -352,11 +352,11 @@ const LandingPage = () => {
                 &copy; 2025 <strong>Denuncias Ciudadanas</strong>. Todos los derechos reservados.
               </p>
               <div className="footer-bottom-links">
-                <a href="#privacy">Política de Privacidad</a>
+                <Link to="/privacy">Política de Privacidad</Link>
                 <span className="separator">•</span>
-                <a href="#cookies">Cookies</a>
+                <Link to="/cookies">Cookies</Link>
                 <span className="separator">•</span>
-                <a href="#legal">Aviso Legal</a>
+                <Link to="/legal">Aviso Legal</Link>
               </div>
             </div>
           </div>
