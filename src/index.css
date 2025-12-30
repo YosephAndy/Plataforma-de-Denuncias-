@@ -177,6 +177,8 @@
   /* slate-50 */
   --color-bg-tertiary: #f1f5f9;
   /* slate-100 */
+  --color-background: #f8fafc;
+  /* slate-50 - Background general de páginas */
   --color-border: #e2e8f0;
   /* slate-200 */
   --color-border-light: #f1f5f9;
