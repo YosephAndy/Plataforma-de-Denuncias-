@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../../../hooks/useIsMobile';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
 import Header from '../../../components/common/Header/Header';
 import BottomNavigation from '../../../components/common/BottomNavigation/BottomNavigation';
 import Comentarios from '../../../components/denuncias/Comentarios';
@@ -292,11 +292,11 @@ const DetalleDenunciaPage = () => {
               <p className={styles.nextStepsText}>
                 {denuncia.estado_nombre === 'Registrada' || denuncia.estado_nombre === 'Pendiente' ?
                   'Tu denuncia será revisada por las autoridades competentes. Recibirás una notificación cuando sea asignada a un área responsable.' :
-                denuncia.estado_nombre === 'En Revisión' || denuncia.estado_nombre === 'Asignada' ?
-                  'Las autoridades están evaluando tu denuncia y definiendo las acciones a tomar. Te notificaremos cuando inicien el trabajo de resolución.' :
-                denuncia.estado_nombre === 'En Proceso' ?
-                  'El área responsable está trabajando en resolver tu denuncia. Te mantendremos informado del avance.' :
-                  'Estamos trabajando en tu denuncia.'
+                  denuncia.estado_nombre === 'En Revisión' || denuncia.estado_nombre === 'Asignada' ?
+                    'Las autoridades están evaluando tu denuncia y definiendo las acciones a tomar. Te notificaremos cuando inicien el trabajo de resolución.' :
+                    denuncia.estado_nombre === 'En Proceso' ?
+                      'El área responsable está trabajando en resolver tu denuncia. Te mantendremos informado del avance.' :
+                      'Estamos trabajando en tu denuncia.'
                 }
               </p>
             </div>
