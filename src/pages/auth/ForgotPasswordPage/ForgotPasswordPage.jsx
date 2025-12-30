@@ -51,7 +51,7 @@ const ForgotPasswordPage = () => {
   // Manejar envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -83,15 +83,15 @@ const ForgotPasswordPage = () => {
               Hemos enviado un enlace de recuperación a <strong>{formData.email}</strong>
             </p>
             <p className={styles.successInstructions}>
-              Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña. 
+              Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.
               Si no recibes el email en unos minutos, revisa tu carpeta de spam.
             </p>
-            
+
             <div className={styles.successActions}>
               <Link to="/login" className={styles.btnPrimary}>
                 Volver al Login
               </Link>
-              <button 
+              <button
                 onClick={() => setSuccess(false)}
                 className={styles.btnSecondary}
               >
@@ -114,7 +114,7 @@ const ForgotPasswordPage = () => {
               ¿Olvidaste tu contraseña?
             </h1>
             <p className={styles.subtitle}>
-              No te preocupes, te ayudamos a recuperarla. Ingresa tu email y te enviaremos 
+              No te preocupes, te ayudamos a recuperarla. Ingresa tu email y te enviaremos
               un enlace para restablecer tu contraseña.
             </p>
           </div>
@@ -160,13 +160,13 @@ const ForgotPasswordPage = () => {
                 Iniciar Sesión
               </Link>
             </p>
-            
+
             <div className={styles.help}>
               <p className={styles.helpText}>
                 ¿Necesitas ayuda? Contacta a nuestro{' '}
-                <a href="mailto:soporte@denuncias.gov.co" className={styles.supportLink}>
+                <Link to="/support" className={styles.supportLink}>
                   equipo de soporte
-                </a>
+                </Link>
               </p>
             </div>
           </div>
